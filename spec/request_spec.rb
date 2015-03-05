@@ -1,9 +1,9 @@
 require 'spec_helper'
-require_relative "../lib/request"
+require_relative '../lib/parse_request.rb'
 
-RSpec.describe 'Parser' do
+RSpec.describe 'Request' do
 
-  it "parses the verb" do
+  before(:all) do
     input = [
       "POST /widgets/1/edit?some-id=42&some-other-id=other HTTP/1.1",
       "Host: localhost:3000",
@@ -13,32 +13,40 @@ RSpec.describe 'Parser' do
       "first_name=Alex&last_name=Andrews"
     ].join("\n")
 
-    request = Request.new(input)
-    request.parse
+    @request = Request.new(input)
+  end
 
-    # get the body
-    expect(request.body).to eq("first_name=Alex&last_name=Andrews")
+  it 'returns the verb' do
+    expect(@request.verb).to eq('POST')
+  end
 
-    # get things from the request line
-    expect(request.verb).to eq("POST")
-    expect(request.path).to eq("/widgets/1/edit")
-    expect(request.query_string).to eq("some-id=42&some-other-id=other")
+  it 'returns the path' do
+    expect(@request.path).to eq('/widgets/1/edit?some-id=42&some-other-id=other')
+  end
 
-    # parse the headers
-    expect(request.headers).to eq({
+  it 'returns the version' do
+    expect(@request.version).to eq('HTTP/1.1')
+  end
+
+  it 'returns the query string' do
+    expect(@request.query_string).to eq('some-id=42&some-other-id=other')
+  end
+
+  it 'returns the headers' do
+    expect(@request.headers).to eq({
       "Host" => "localhost:3000",
       "Cache-Control" => "no-cache",
-      "Content-Type" => "application/x-www-form-urlencoded",
+      "Content-Type" => "application/x-www-form-urlencoded"
     })
+  end
 
-    # bring together all the params
-    expect(request.params).to eq({
+  it 'returns the params' do
+    expect(@request.params).to eq({
       "some-id" => "42",
       "some-other-id" => "other",
       "first_name" => "Alex",
-      "last_name" => "Andrews",
+      "last_name" => "Andrews"
     })
-
   end
 
 end
